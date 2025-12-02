@@ -1,5 +1,5 @@
 pnadc_download <- function(){
-  
+  library(PNADcIBGE)
   baixar_base_trimestre <- function(ano, variaveis, trimestre = 4) {
     get_pnadc(year = ano, vars = variaveis, topic = trimestre, design = FALSE)
   }
@@ -23,8 +23,7 @@ pnadc_download <- function(){
   
   # Pipeline principal. Seleciona o 4 semestre, que contem informações sobre segurança alimentar.
   dados <- 2023:2024 |> 
-    map_df(~baixar_base_trimestre(.x, variaveis_selecionadas, 4)) |> 
-    identity()
+    purrr::map_df(~baixar_base_trimestre(.x, variaveis_selecionadas, 4))
   
   saveRDS(dados, "data/clean_data/pnadc.RDS")
 }

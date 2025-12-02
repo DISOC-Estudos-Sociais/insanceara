@@ -1,0 +1,15 @@
+{
+  "hash": "2f85e41639a9efd245d165ec8f93793b",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: A segurança alimentar no Ceará em 2024\nauthors:\n  - name: João Victor Batista Lopes\n    affiliation: IPECE - Instituto de Pesquisa e Estratégia Econômica do Ceará\n    roles: writing\n    corresponding: true\nexecute:\n  echo: false\n  message: false\n  warning: false\nbibliography: references.bib\n---\n\n\n::: {.cell}\n\n```{.r .cell-code .hidden}\nlibrary(devtools)\n```\n\n::: {.cell-output .cell-output-stderr .hidden}\n\n```\nCarregando pacotes exigidos: usethis\n```\n\n\n:::\n\n```{.r .cell-code .hidden}\nlibrary(magrittr)\nlibrary(tidyverse)\n```\n\n::: {.cell-output .cell-output-stderr .hidden}\n\n```\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.1     ✔ stringr   1.6.0\n✔ ggplot2   4.0.1     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n```\n\n\n:::\n\n::: {.cell-output .cell-output-stderr .hidden}\n\n```\n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ tidyr::extract()   masks magrittr::extract()\n✖ dplyr::filter()    masks stats::filter()\n✖ dplyr::lag()       masks stats::lag()\n✖ purrr::set_names() masks magrittr::set_names()\nℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors\n```\n\n\n:::\n\n```{.r .cell-code .hidden}\nfuncoes <- list.files(\"R\", pattern = \"\\\\.R$\", full.names = TRUE)\nsapply(funcoes, source, .GlobalEnv)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n        R/make_panel_san.R R/pnad2004.R R/pnad2009.R R/pnad2013.R\nvalue   ?                  ?            ?            ?           \nvisible FALSE              FALSE        FALSE        FALSE       \n        R/pnada_labeller.R R/pnadc.R R/pnadc_download.R R/pof.R\nvalue   ?                  ?         ?                  ?      \nvisible FALSE              FALSE     FALSE              FALSE  \n        R/pof_labeller.R R/read_pnada.R R/read_pof.R\nvalue   ?                ?              ?           \nvisible FALSE            FALSE          FALSE       \n```\n\n\n:::\n\n```{.r .cell-code .hidden}\n#' Importante:\n#' Para a realização dessa análise é necessário fazer o download dos microdados das\n#' pesquisas e seus respectivos inputs de leitura no site do IBGE e salvar na \n#' pasta data/raw_data. A exceçõa é para a PNAD Contínua, que pode ser baixada\n#' através da função pnadc_download.\n#' \n#' Após colocar os arquivos na pasta, a função make_panel_san() roda o pipeline \n#' completo e salva a tabela necessária para a análise.\n#' \n#' pnadc_download()\n#' make_panel_san()\n```\n:::\n\n\n\n## Section\nThis is a simple placeholder for the manuscript's main document [@knuth84].\n\n\n::: {.cell}\n\n```{.r .cell-code .hidden}\n1 + 1\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] 2\n```\n\n\n:::\n:::\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": null,
+    "postProcess": false
+  }
+}
