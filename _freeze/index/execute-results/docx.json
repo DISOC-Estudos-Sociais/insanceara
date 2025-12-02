@@ -1,0 +1,15 @@
+{
+  "hash": "cfe3c3e3b6b2ef313803341f8c179f77",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: insanceara\nauthors:\n  - name: Norah Jones\n    affiliation: The University\n    roles: writing\n    corresponding: true\nbibliography: references.bib\n---\n\n## Section\nThis is a simple placeholder for the manuscript's main document [@knuth84].\n\n\n::: {.cell}\n\n```{.r .cell-code .hidden}\n1 + 1\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] 2\n```\n\n\n:::\n:::\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": null,
+    "postProcess": false
+  }
+}
