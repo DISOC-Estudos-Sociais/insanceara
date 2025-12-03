@@ -37,14 +37,57 @@ sapply(funcoes, source, .GlobalEnv)
 #' make_panel_san()
 ```
 
-
 ## Introdução
-This is a simple placeholder for the manuscript's main document [@knuth84].
+
+O Instituto Brasileiro de Geografia e Estatística (IBGE) disponibilizou os dados da última aplicação da Escala Brasileira de Insegurança Alimentar (EBIA) no ano de 2024, por meio da Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD) Contínua. Essa é a quinta vez que o IBGE divulga uma série de resultados sobre o tema, o que permite a comparação da evolução dos indicadores de Segurança Alimentar e Nutricional (SAN), ao longo dos anos. Os resultados se referem às situações vivenciadas pelos moradores dos domicílios particulares permanentes nos últimos três meses anteriores à pesquisa, realizada no quarto trimestre de 2024. De acordo com os resultados, os domicílios podem ser classificados em Segurança Alimentar (SA) e Insegurança Alimentar (IA), classificada em três níveis leve, moderada ou grave
 
 ## Evolução da prevalência de segurança e insegurança alimentar no Ceará
+
 ```{r input dos dados}
 dados <- readRDS("data/clean_data/painel_san.RDS")
 ```
+
+```{r padronizacao visual dos graficos}
+# Paleta de cores
+paleta_san <- scale_fill_manual(
+  values = c("#2ecc71", "#f39c12", "#e67e22", "#e74c3c"),
+  name = "Situação de Segurança Alimentar",
+  labels = c("Segurança alimentar", "IA leve", "IA moderada", "IA grave")
+)
+
+# As vezes precisa dela invertida
+paleta_san_invertida <- scale_fill_manual(
+    values = c("#e74c3c", "#e67e22", "#f39c12","#2ecc71"),
+    name = "Situação de Segurança Alimentar",
+    labels = c("IA grave", "IA moderada", "IA leve","Segurança alimentar")
+  )
+
+# Eixo Y padrão
+eixo_y_percentual <- scale_y_continuous(
+  labels = scales::percent,
+  limits = c(0, NA)
+)
+
+# Tema customizado
+tema_san <- theme_minimal(base_size = 8) +
+  theme(
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.title.position = "top",
+    legend.title = element_text(face = "bold", size = 8),
+    strip.text = element_text(face = "bold", size = 8),
+    strip.background = element_rect(fill = "grey90", color = NA),
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 8),
+    plot.subtitle = element_text(hjust = 0.5, size = 8),
+    plot.caption = element_text(hjust = 0, size = 8, color = "grey40"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text.x = element_text(size = 8)
+  )
+
+```
+
+Em 2024, 69,5% dos domicílios cearenses estavam em situação de segurança alimentar, que ocorre quando os moradores têm acesso regular e permanente a alimentos de qualidade e em quantidade suficiente. Esse é o maior valor da série histórica iniciada em 2004, quando o IBGE aplicou pela primeira vez a Escala Brasileira de Insegurança Alimentar (EBIA) para investigar a situação de segurança alimentar nos domicílios brasileiros na extinta Pesquisa Nacional por Amostra de Domicílios (PNAD), conforme pode ser verificado no Gráfico @fig-evolucao.
 
 ```{r}
 #| label: fig-evolucao
@@ -70,11 +113,11 @@ dados_svy |>
   geom_col(position = "stack") +
   coord_flip()+
   labs(
-    title = "Evolução da prevalência de segurança alimentar e insegurança leve,\nmoderada e grave nos domicílios particulares permanentes",
-    subtitle = "Ceará",
+    #title = "Evolução da prevalência de segurança alimentar e insegurança leve,\nmoderada e grave nos domicílios particulares permanentes",
+    #subtitle = "Ceará",
     y = "Proporção de domicílios",
     x = NULL,
-    caption = "Fonte: PNAD Contínua/IBGE"
+    #caption = "Fonte: PNAD Contínua/IBGE"
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
@@ -83,35 +126,17 @@ dados_svy |>
     size = 3,
     color ="white"
   ) +
-  scale_y_continuous(
-    labels = scales::percent,
-    limits = c(0, NA)
-  ) +
-  scale_fill_manual(
-    values = c("#e74c3c", "#e67e22", "#f39c12","#2ecc71"),
-    name = "Situação de Segurança Alimentar",
-    labels = c("IA grave", "IA moderada", "IA leve","Segurança alimentar")
-  )+
+  paleta_san_invertida +
   guides(fill = guide_legend(reverse = TRUE)) +
-  theme_minimal(base_size = 11) +
-  theme(
-    legend.position = "bottom",
-    legend.direction = "horizontal",
-    legend.title.position = "top",
-    legend.title = element_text(face = "bold", size = 10),
-    legend.text = element_text(size = 8),
-    strip.text = element_text(face = "bold", size = 6),
-    strip.background = element_rect(fill = "grey90", color = NA),
-    plot.title = element_text(hjust = 0.5, face = "bold", size = 13),
-    plot.subtitle = element_text(hjust = 0.5, size = 11),
-    plot.caption = element_text(hjust = 0, size = 9, color = "grey40"),
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor = element_blank(),
-    axis.text.y = element_text(size = 10)
-  )
+  eixo_y_percentual +
+  tema_san
+  
 ```
 
-## Situação de segurança alimentar no ceará e recortes geográficos
+Consequentemente, de forma inversa, o percentual de domicílios nos quais os moradores, inclusive as crianças, ficaram um dia inteiro sem comer por falta de dinheiro para comprar alimentos (IA grave), atingiu o menor valor nos últimos 20 anos. Entre 2023 e 2024, o percentual dos domicílios cearenses que estavam em situação de insegurança alimentar grave caiu de 6,3% para 4,5% no último ano. Esse valor é menor inclusive do que o percentual observado em 2013 (5,1%) no Ceará, quando o Brasil saiu pela primeira vez do Mapa da Fome, segundo a Organização das Nações Unidas para a Alimentação e a Agricultura (FAO). No mesmo período, a insegurança alimentar leve teve queda de 21,4% para 19,8%, enquanto a moderada, caiu de 7,5% para 6,2%. Ao todo, a proporção de domicílios cearenses com algum grau de insegurança alimentar recuou de 35,1% para 30,5% entre 2023 e 2024. De modo que, é possível verificar que a redução foi mais intensa na insegurança alimentar grave que caiu -1,8 pontos percentuais, enquanto a IA leve e a moderada caíram -1,6 e -1,3 p.p., respectivamente.
+
+Em números absolutos, dos 9,195 milhões de pessoas na população do Ceará estimada pela PNAD Contínua no quarto trimestre de 2024, mais de 3 milhões, o equivalente a 32,5% da população total, sofreram algum grau de insegurança alimentar. Destes, 391 mil tiveram que reduzir a quantidade de alimentos consumidos, chegando até mesmo a passar fome (IA Grave). Apesar dessa realidade ainda angustiante, em comparação ao ano de 2023, mil cearenses deixaram de passar fome. Isso representou uma redução de -27,6% no total de cearenses em situação alimentar grave no último ano.
+
 ```{r}
 #| label: tbl-domicilios
 #| tbl-cap: Domicílios particulares e moradores em domicílios particulares por situação do domicílio, segundo a situação de segurança alimentar existente no domicílio
@@ -122,10 +147,32 @@ bind_rows(
     count(ano, san, situacao, wt=peso) |>
     mutate(Tipo = "Domicílios"),
   dados |> 
+    filter(ano %in% c("PNADC 2023", "PNADC 2024") & posicao == "Pessoa responsável" & uf == "Ceará") |>
+    mutate(san=if_else(san %in% c("Insegurança alimentar leve", "Insegurança alimentar moderada", "Insegurança alimentar grave"), "Insegurança alimentar", san),
+           Tipo = "Domicílios") |>
+    filter(san=="Insegurança alimentar") |> 
+    count(ano, san, situacao, Tipo, wt=peso),
+  dados |> 
+    filter(ano %in% c("PNADC 2023", "PNADC 2024") & posicao == "Pessoa responsável" & uf == "Ceará") |>
+    mutate(san="Total") |> 
+    count(ano, san, situacao, wt=peso) |>
+    mutate(Tipo = "Domicílios"),
+  dados |> 
     filter(ano %in% c("PNADC 2023", "PNADC 2024") & uf == "Ceará") |>
     count(ano, san, situacao, wt=peso) |>
+    mutate(Tipo = "Moradores"),
+  dados |> 
+    filter(ano %in% c("PNADC 2023", "PNADC 2024") & uf == "Ceará") |>
+    mutate(san=if_else(san %in% c("Insegurança alimentar leve", "Insegurança alimentar moderada", "Insegurança alimentar grave"), "Insegurança alimentar", san),
+           Tipo = "Moradores") |>
+    filter(san=="Insegurança alimentar") |> 
+    count(ano, san, situacao, Tipo, wt=peso),
+  dados |> 
+    filter(ano %in% c("PNADC 2023", "PNADC 2024") & uf == "Ceará") |>
+    mutate(san="Total") |> 
+    count(ano, san, situacao, wt=peso) |>
     mutate(Tipo = "Moradores")
-) |>
+) |> 
   mutate(n = n/1000) |>
   pivot_wider(names_from = c(Tipo, situacao), 
               values_from = n,
@@ -134,10 +181,10 @@ bind_rows(
   mutate(`Moradores_Total` = `Moradores_Urbana` + `Moradores_Rural`, .after = `Moradores_Urbana`) |>
   group_by(ano) |>
   gt() |>
-  tab_header(
-    title = "Insegurança Alimentar no Ceará (em milhares)",
-    subtitle = "Ceará – 2023 e 2024"
-    ) |>
+  # tab_header(
+  #   title = "Insegurança Alimentar no Ceará (em milhares)",
+  #   subtitle = "Ceará – 2023 e 2024"
+  #   ) |>
   tab_spanner(label = "Domicílios", columns = starts_with("Domicílios")) |>
   tab_spanner(label = "Moradores", columns = starts_with("Moradores")) |>
   cols_label(
@@ -159,7 +206,7 @@ bind_rows(
     locations = cells_row_groups()
   ) |> 
   # Fonte da tabela
-  tab_source_note(source_note = "Fonte: PNAD Contínua/IBGE") |>
+  # tab_source_note(source_note = "Fonte: PNAD Contínua/IBGE") |>
   # Tema geral
   tab_options(
     table.font.size = px(12),
@@ -171,49 +218,13 @@ bind_rows(
   )
 ```
 
-```{r padronizacao visual dos graficos}
-# Paleta de cores
-paleta_san <- scale_fill_manual(
-  values = c("#2ecc71", "#f39c12", "#e67e22", "#e74c3c"),
-  name = "Situação de Segurança Alimentar",
-  labels = c("Segurança alimentar", "IA leve", "IA moderada", "IA grave")
-)
+## Situação de segurança alimentar no Ceará e recortes geográficos
 
-# As vezes precisa dela invertida
-paleta_san_invertida <- scale_fill_manual(
-    values = c("#e74c3c", "#e67e22", "#f39c12","#2ecc71"),
-    name = "Situação de Segurança Alimentar",
-    labels = c("IA grave", "IA moderada", "IA leve","Segurança alimentar")
-  )
-
-# Eixo Y padrão
-eixo_y_percentual <- scale_y_continuous(
-  labels = scales::percent,
-  limits = c(0, NA)
-)
-
-# Tema customizado
-tema_san <- theme_minimal(base_size = 11) +
-  theme(
-    legend.position = "bottom",
-    legend.direction = "horizontal",
-    legend.title.position = "top",
-    legend.title = element_text(face = "bold", size = 10),
-    strip.text = element_text(face = "bold", size = 11),
-    strip.background = element_rect(fill = "grey90", color = NA),
-    plot.title = element_text(hjust = 0.5, face = "bold", size = 13),
-    plot.subtitle = element_text(hjust = 0.5, size = 11),
-    plot.caption = element_text(hjust = 0, size = 9, color = "grey40"),
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor = element_blank(),
-    axis.text.x = element_text(size = 10)
-  )
-
-```
+O Gráfico @fig-situacao mostra a prevalência de segurança alimentar por situação do domicílio.
 
 ```{r}
 #| label: fig-situacao
-#| fig-cap: "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo a situação do domicílio"
+#| fig-cap: "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo a situação do domicílio. Ceará - 2024"
 dados_svy_ce(dados, situacao) |> 
   ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
   geom_col(position = "stack", width = 0.7) +
@@ -227,11 +238,11 @@ dados_svy_ce(dados, situacao) |>
     size = 3,
     color="white")+
   labs(
-    title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo a situação do domicílio",
-    subtitle = "Ceará – 2023 e 2024",
+    #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo a situação do domicílio",
+    #subtitle = "Ceará – 2023 e 2024",
     y = "Proporção de domicílios",
     x = NULL,
-    caption = "Fonte: PNAD Contínua/IBGE"
+    #caption = "Fonte: PNAD Contínua/IBGE"
   )+
   paleta_san_invertida +
   guides(fill = guide_legend(reverse = TRUE)) +
@@ -239,9 +250,11 @@ dados_svy_ce(dados, situacao) |>
   tema_san
 ```
 
+A Figura @fig-estratos apresenta o percentual de domicílios particulares permanentes por situação de segurança alimentar.
+
 ```{r}
 #| label: fig-estratos
-#| fig-cap: "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo os recortes geográficos"
+#| fig-cap: "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo os recortes geográficos. Ceará - 2024"
 dados |> 
   dados_svy_ce(estrato) |> 
   filter(ano=="PNADC 2024") |> 
@@ -256,15 +269,15 @@ dados |>
   geom_col(position = "stack", width = 0.7) +
   coord_flip()+
   labs(
-    title = "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo os recortes geográficos",
-    subtitle = "Ceará – 2024",
+    #title = "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo os recortes geográficos",
+    #subtitle = "Ceará – 2024",
     y = "Proporção de domicílios",
     x = NULL,
-    caption = "Fonte: PNAD Contínua/IBGE"
+    #caption = "Fonte: PNAD Contínua/IBGE"
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
-    position = position_stack(vjust = 0.5),
+    position = position_stack(vjust = 0.25),
     size = 3,
     color="white"
   ) +
@@ -272,11 +285,50 @@ dados |>
   guides(fill = guide_legend(reverse = TRUE)) +
   eixo_y_percentual +
   tema_san
-  
+```
 
+```{r}
+#| label: fig-distribuicaoestratos
+#| fig-cap: : "Distribuição dos domicílios por recortes geográficos, segundo a situação de segurança alimentar – Ceará – 2024"
+bind_rows(
+  dados |> 
+    mutate(san = "Total de domicílios") |> 
+    dados_svy_san_ce(estrato)|> 
+    filter(ano=="PNADC 2024"),
+  dados |> 
+    dados_svy_san_ce(estrato)|> 
+    filter(ano=="PNADC 2024")
+) |> 
+  mutate(estrato = fct_recode(estrato, 
+                              "Fortaleza(CE)" = "2310",
+                              "Entorno metropolitano \nde Fortaleza (CE)" = "2320",
+                              "Litoral Ocidental \ne Norte do Ceará"= "2353",
+                              "Litoral Oriental \nVale do R. Jaguaribe (CE)"="2354",
+                              "Sertões do Ceará"="2352",
+                              "Sul do Ceará"="2351")) |> 
+  ggplot(aes(fct_rev(san), proporcao, fill = fct_rev(estrato))) +
+  geom_col(position = "stack", width = 0.7) +
+  coord_flip()+
+  labs(
+    #title = "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo os recortes geográficos",
+    #subtitle = "Ceará – 2024",
+    y = "Proporção de domicílios",
+    x = NULL,
+    #caption = "Fonte: PNAD Contínua/IBGE"
+  ) +
+  geom_text(
+    aes(label = scales::percent(proporcao, accuracy = 0.1)), 
+    position = position_stack(vjust = 0.25),
+    size = 3,
+    color="white"
+  ) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  eixo_y_percentual +
+  tema_san
 ```
 
 ## Situação de segurança alimentar: comparação Brasil, Nordeste e Ceará
+
 ```{r calculo comparacao}
 indicadores <- dados |> 
   filter(ano == "PNADC 2024" & posicao == "Pessoa responsável" & !is.na(peso)) |> 
@@ -326,7 +378,7 @@ indicadores <- bind_rows(indicadores, brasil)
 
 ```{r}
 #| label: fig-comparacao
-#| fig-cap: "Distribuição dos domicílios particulares permanentes por situação de segurança alimentar existente no domicílio"
+#| fig-cap: "Distribuição dos domicílios particulares permanentes por situação de segurança alimentar existente no domicílio. Brasil, Nordeste e Ceará - 2024"
 #| 
 indicadores |> 
   mutate(grupo = fct_relevel(grupo, "Ceará", "Nordeste", "Brasil")) |> 
@@ -334,11 +386,11 @@ indicadores |>
   geom_col(position = "stack", width = 0.7) +
   coord_flip()+
   labs(
-    title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o sexo da pessoa responsável pelo domicílio",
-    subtitle = "Brasil, Nordeste e Ceará – 2024",
+    #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o sexo da pessoa responsável pelo domicílio",
+    #subtitle = "Brasil, Nordeste e Ceará – 2024",
     y = "Proporção de domicílios",
     x = NULL,
-    caption = "Fonte: PNAD Contínua/IBGE"
+    #caption = "Fonte: PNAD Contínua/IBGE"
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
@@ -353,21 +405,23 @@ indicadores |>
 
 ```
 
-
 ## Características dos domicílios e de seus moradores
 
-```{r sexo}
+```{r}
+#| label: fig-sexo
+#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,\nsegundo o sexo da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
+
 dados_svy_ce(dados, sexo) |> 
   ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
   geom_col(position = "stack", width = 0.7) +
   coord_flip()+
   facet_grid(sexo ~ .)+
   labs(
-    title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o sexo da pessoa responsável pelo domicílio",
-    subtitle = "Ceará – 2023 e 2024",
+    #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o sexo da pessoa responsável pelo domicílio",
+    #subtitle = "Ceará – 2023 e 2024",
     y = "Proporção de domicílios",
     x = NULL,
-    caption = "Fonte: PNAD Contínua/IBGE"
+    #caption = "Fonte: PNAD Contínua/IBGE"
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
@@ -381,7 +435,9 @@ dados_svy_ce(dados, sexo) |>
   tema_san
 ```
 
-```{r raca}
+```{r}
+#| label: fig-raca
+#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,\nsegundo a raça da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
 dados |>
   mutate(
     raca = case_when(
@@ -398,11 +454,11 @@ dados |>
   coord_flip()+
   facet_grid(raca ~ .) +
   labs(
-    title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo a raça da pessoa responsável pelo domicílio",
-    subtitle = "Ceará – 2023 e 2024",
+    #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo a raça da pessoa responsável pelo domicílio",
+    #subtitle = "Ceará – 2023 e 2024",
     y = "Proporção de domicílios",
     x = NULL,
-    caption = "Fonte: PNAD Contínua/IBGE"
+    #caption = "Fonte: PNAD Contínua/IBGE"
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
@@ -417,13 +473,16 @@ dados |>
 
 ```
 
-```{r escolaridade}
+```{r}
+#| label: fig-escolaridade
+#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,\nsegundo a faixa de escolaridade da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
+
 dados |>
   mutate(
     faixa_escolaridade = case_when(
       faixa_escolaridade == "Sem instrução e menos de 1 ano de estudo" ~ "Sem instrução ou \nFund. incompleto",
       faixa_escolaridade == "Fundamental incompleto ou equivalente" ~ "Sem instrução ou \nFund. incompleto",
-      TRUE ~ "Fundamental completo \nou mais"
+      TRUE ~ "Fundamental \ncompleto \nou mais"
     )) |> 
   dados_svy_ce(faixa_escolaridade) |> 
   ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
@@ -431,11 +490,11 @@ dados |>
   coord_flip()+
   facet_grid(faixa_escolaridade ~ .) +
   labs(
-    title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o nível de escolaridade da pessoa responsável pelo domicílio",
-    subtitle = "Ceará – 2023 e 2024",
+    #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o nível de escolaridade da pessoa responsável pelo domicílio",
+    #subtitle = "Ceará – 2023 e 2024",
     y = "Proporção de domicílios",
     x = NULL,
-    caption = "Fonte: PNAD Contínua/IBGE"
+    #caption = "Fonte: PNAD Contínua/IBGE"
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
@@ -450,13 +509,15 @@ dados |>
 
 ```
 
-```{r renda}
+```{r}
+#| label: fig-renda
+#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,\nsegundo a faixa de renda da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
 dados |>
   mutate(
     faixa_renda = case_when(
-      faixa_renda == "Até ¼ salário mínimo" ~ "Até ½ salário mínimo",
-      faixa_renda == "Mais de ¼ até ½ salário mínimo" ~ "Até ½ salário mínimo",
-      TRUE ~ "Mais de ½ salário mínimo"
+      faixa_renda == "Até ¼ salário mínimo" ~ "Até ½ \nsalário mínimo",
+      faixa_renda == "Mais de ¼ até ½ salário mínimo" ~ "Até ½ \nsalário mínimo",
+      TRUE ~ "Mais de ½ \nsalário mínimo"
     )) |> 
   dados_svy_ce(faixa_renda) |> 
   ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
@@ -464,11 +525,11 @@ dados |>
   coord_flip()+
   facet_grid(faixa_renda ~ .) +
   labs(
-    title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo as classes de rendimento domiciliar per capita",
-    subtitle = "Ceará – 2023 e 2024",
+    #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo as classes de rendimento domiciliar per capita",
+    #subtitle = "Ceará – 2023 e 2024",
     y = "Proporção de domicílios",
     x = NULL,
-    caption = "Fonte: PNAD Contínua/IBGE"
+    #caption = "Fonte: PNAD Contínua/IBGE"
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 

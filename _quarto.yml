@@ -8,7 +8,12 @@ format:
   html:
     comments:
       hypothesis: true
-  docx: default
+  docx:
+    fig-cap-location: top
+    fig-align: center
+    fig-format: png
+    tbl-cap-location: top
+    reference-doc: custom-reference.docx
   jats: default
 
   # (other formats)
