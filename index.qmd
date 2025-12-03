@@ -234,7 +234,7 @@ dados_svy_ce(dados, situacao) |>
                                             Rural = "Área Rural")))+
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
-    position = position_stack(vjust = 0.7),
+    position = position_stack(vjust = 0.5),
     size = 3,
     color="white")+
   labs(
@@ -277,7 +277,7 @@ dados |>
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
-    position = position_stack(vjust = 0.25),
+    position = position_stack(vjust = 0.5),
     size = 3,
     color="white"
   ) +
@@ -289,7 +289,8 @@ dados |>
 
 ```{r}
 #| label: fig-distribuicaoestratos
-#| fig-cap: : "Distribuição dos domicílios por recortes geográficos, segundo a situação de segurança alimentar – Ceará – 2024"
+#| fig-cap: "Distribuição dos domicílios por recortes geográficos, segundo a situação de segurança alimentar – Ceará – 2024"
+
 bind_rows(
   dados |> 
     mutate(san = "Total de domicílios") |> 
@@ -318,7 +319,7 @@ bind_rows(
   ) +
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
-    position = position_stack(vjust = 0.25),
+    position = position_stack(vjust = 0.5),
     size = 3,
     color="white"
   ) +
