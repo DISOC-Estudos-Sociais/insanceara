@@ -10,7 +10,7 @@ execute:
   message: false
   warning: false
   fig-width: 6
-  fig-height: 3
+  fig-height: 4
 bibliography: references.bib
 ---
 
@@ -22,6 +22,7 @@ library(magrittr)
 library(tidyverse)
 library(srvyr)
 library(gt)
+library(ggrepel)
 
 funcoes <- list.files("R", pattern = "\\.R$", full.names = TRUE)
 sapply(funcoes, source, .GlobalEnv)
@@ -90,11 +91,11 @@ tema_san <- theme_minimal(base_size = 8) +
 
 ```
 
-Em 2024, 69,5% dos domicílios cearenses estavam em situação de segurança alimentar, que ocorre quando os moradores têm acesso regular e permanente a alimentos de qualidade e em quantidade suficiente. Esse é o maior valor da série histórica iniciada em 2004, quando o IBGE aplicou pela primeira vez a Escala Brasileira de Insegurança Alimentar (EBIA) para investigar a situação de segurança alimentar nos domicílios brasileiros na extinta Pesquisa Nacional por Amostra de Domicílios (PNAD), conforme pode ser verificado na @fig-evolucao.
+A PNAD Contínua estimou um total de 3,34 milhões de domicílios particulares permanentes no Ceará no quarto trimestre de 2024. Desse total, 69,5% encontravam-se em situação de segurança alimentar, condição caracterizada pelo acesso regular e permanente a alimentos de qualidade e em quantidade suficiente. Trata-se do maior percentual observado em toda a série histórica iniciada em 2004, ano em que o IBGE aplicou, pela primeira vez, a Escala Brasileira de Insegurança Alimentar (EBIA) para investigar a situação de segurança alimentar nos domicílios brasileiros, no âmbito da extinta Pesquisa Nacional por Amostra de Domicílios (PNAD), conforme ilustrado na \@fig-evolucao.
 
 ```{r}
 #| label: fig-evolucao
-#| fig-cap: "Evolução da prevalência de segurança alimentar e insegurança leve,\nmoderada e grave nos domicílios particulares permanentes."
+#| fig-cap: "Evolução da prevalência de segurança alimentar e insegurança leve,\nmoderada e grave nos domicílios particulares permanentes - Ceará."
 
 dados_svy <- dados[!is.na(dados$peso),] |> 
   filter(posicao=="Pessoa responsável") |> 
@@ -110,11 +111,8 @@ dados_svy |>
     n = survey_total(),
     proporcao = survey_mean()
   ) |>
-  mutate(ano = fct_rev(ano),
-         san=fct_rev(san)) |> 
   ggplot(aes(ano, proporcao, fill = san)) +
   geom_col(position = "stack") +
-  coord_flip()+
   labs(
     #title = "Evolução da prevalência de segurança alimentar e insegurança leve,\nmoderada e grave nos domicílios particulares permanentes",
     #subtitle = "Ceará",
@@ -126,23 +124,173 @@ dados_svy |>
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     vjust = -0.2, 
     position = position_stack(vjust = 0.5),
-    size = 2,
-    color ="white"
+    size = 3.25,
+    color ="white",
+    fontface = "bold"
   ) +
-  paleta_san_invertida +
-  guides(fill = guide_legend(reverse = TRUE)) +
+  paleta_san+
   eixo_y_percentual +
   tema_san
   
 ```
 
-Consequentemente, de forma inversa, o percentual de domicílios nos quais os moradores, inclusive as crianças, ficaram um dia inteiro sem comer por falta de dinheiro para comprar alimentos (IA grave), atingiu o menor valor nos últimos 20 anos. Entre 2023 e 2024, o percentual dos domicílios cearenses que estavam em situação de insegurança alimentar grave caiu de 6,3% para 4,5% no último ano. Esse valor é menor inclusive do que o percentual observado em 2013 (5,1%) no Ceará, quando o Brasil saiu pela primeira vez do Mapa da Fome, segundo a Organização das Nações Unidas para a Alimentação e a Agricultura (FAO). No mesmo período, a insegurança alimentar leve teve queda de 21,4% para 19,8%, enquanto a moderada, caiu de 7,5% para 6,2%. Ao todo, a proporção de domicílios cearenses com algum grau de insegurança alimentar recuou de 35,1% para 30,5% entre 2023 e 2024. De modo que, é possível verificar que a redução foi mais intensa na insegurança alimentar grave que caiu -1,8 pontos percentuais, enquanto a IA leve e a moderada caíram -1,6 e -1,3 p.p., respectivamente.
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
 
-Em números absolutos, dos 9,195 milhões de pessoas na população do Ceará estimada pela PNAD Contínua no quarto trimestre de 2024, mais de 3 milhões, o equivalente a 32,5% da população total, sofreram algum grau de insegurança alimentar. Destes, 391 mil tiveram que reduzir a quantidade de alimentos consumidos, chegando até mesmo a passar fome (IA Grave). Apesar dessa realidade ainda angustiante, em comparação ao ano de 2023, mil cearenses deixaram de passar fome. Isso representou uma redução de -27,6% no total de cearenses em situação alimentar grave no último ano.
+```{r gif da evolucao da san}
+#| eval: false
+#| include: false
+library(gganimate)
+library(gifski)  # Necessário para renderizar GIFs!
+
+p <- dados_svy |> 
+  filter(posicao == "Pessoa responsável" & uf == "Ceará" & !is.na(san)) |>
+  group_by(ano, san) |>
+  summarise(
+    n = survey_total(),
+    proporcao = survey_mean(),
+    .groups = "drop"
+  ) |>
+  mutate(
+    ano = fct_rev(ano),
+    san = fct_rev(san),
+    idx_ano = as.integer(fct_rev(ano))
+  ) |> 
+  ggplot(aes(ano, proporcao, fill = san)) +
+  geom_col(position = "stack") +
+  coord_flip() +
+  labs(
+    y = "Proporção de domicílios",
+    x = NULL
+  ) +
+  geom_text(
+    aes(label = round(proporcao*100, digits = 1)), 
+    position = position_stack(vjust = 0.5),
+    size = 5,
+    color = "white",
+    fontface = "bold"
+  ) +
+  paleta_san_invertida +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  eixo_y_percentual +
+  theme_minimal()+
+  theme(
+  axis.title.y = element_text(size = 16),
+  legend.title = element_text(size = 16),
+  legend.title.position = "top",
+  legend.text = element_text(size = 16),
+  legend.position = "bottom",
+  axis.text = element_text(size = 16),
+  panel.grid = element_blank(),
+  axis.text.x = element_blank(),
+  axis.ticks.x = element_blank()
+)+
+  transition_reveal(along = idx_ano)+
+  ease_aes("linear")
+
+
+# Renderiza e salva
+animate(p,
+  nframes = 120,
+  fps = 20,
+  width = 800,
+  height = 600,
+  renderer = gifski_renderer("output/san_ceara.gif"),
+  end_pause = 20
+)
+
+```
+
+```{r gif da evolucao da pobreza}
+#| eval: false
+#| include: false
+library(ggplot2)
+library(gganimate)
+library(gifski)
+library(dplyr)
+library(tidyr)
+
+# Dados
+dados_linha <- tibble(
+  ano = 2012:2024,
+  pob_extrema = c(14.5, 13.8, 11.9, 12.1, 14.1, 13.9, 13.6, 13.5, 9.9, 16.0, 10.9, 9.4, 7.9),
+  pobreza = c(56.2, 52.4, 51.6, 52.2, 54.4, 52.3, 51.6, 51.0, 47.5, 54.6, 50.7, 48.7, 43.3)
+)
+
+# Transforma para formato longo
+dados_long <- dados_linha |>
+  pivot_longer(
+    cols = c(pob_extrema, pobreza),
+    names_to = "indicador",
+    values_to = "percentual"
+  ) |>
+  mutate(
+    indicador = case_when(
+      indicador == "pob_extrema" ~ "Pobreza Extrema",
+      indicador == "pobreza" ~ "Pobreza"
+    )
+  )
+
+# Cria o gráfico animado
+p <- dados_long |>
+  ggplot(aes(x = ano, y = percentual, color = indicador, group = indicador)) +
+  geom_line(size = 1.5, show.legend = TRUE) +
+  geom_point(size = 4) +
+  geom_text(aes(label = percentual, group = seq_along(ano)),
+            vjust = -1.5, 
+            size = 4,
+            fontface = "bold",
+            color = "black",
+            show.legend = FALSE) +
+  scale_color_manual(values = c("Pobreza Extrema" = "#d62828", 
+                                 "Pobreza" = "#f77f00")) +
+  scale_x_continuous(breaks = 2012:2024) +
+  scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, 10)) +
+  labs(
+    title = "Percentual de pessoas com rendimento domiciliar per capita inferior às linhas de pobreza e pobreza extrema (PPC 2017)",
+    subtitle = "Ceará - Ano: {frame_along}",
+    x = "Ano",
+    y = "Percentual (%)",
+    color = NULL,
+    caption = "Pobreza extrema: inferior a US$ 2,15/dia por pessoa (R$ 220,84, em reais de 2024)\nPobreza: inferior a US$ 6,85/dia por pessoa (R$ 703,62, em reais de 2024)\nFonte: IBGE, Pesquisa Nacional por Amostra de Domicílios Contínua Anual, 2012 a 2024"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, hjust = 0.5, lineheight = 1.2),
+    plot.subtitle = element_text(size = 13, hjust = 0.5, margin = margin(b = 15)),
+    plot.caption = element_text(hjust = 0, size = 9, lineheight = 1.3, margin = margin(t = 15)),
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 12),
+    panel.grid.minor = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ) +
+  transition_reveal(ano) +
+  ease_aes('linear')
+
+
+# Renderiza e salva
+animate(p, 
+        renderer = gifski_renderer("output/linha_tempo_pobreza_ceara.gif"),
+        width = 900, 
+        height = 450,
+        duration = 12,
+        fps = 20,
+        end_pause = 20)  # Pausa no final para visualizar melhor
+```
+
+De forma inversa, o percentual de domicílios em que os moradores — inclusive crianças — passaram um dia inteiro sem comer por falta de dinheiro para a compra de alimentos (insegurança alimentar grave) atingiu, em 2024, o menor valor dos últimos 20 anos. Entre 2023 e 2024, a proporção de domicílios cearenses nessa situação caiu de 6,3% para 4,5%. Esse patamar é inferior, inclusive, ao observado em 2013 (5,1%), quando o Brasil saiu, pela primeira vez, do Mapa da Fome, segundo a Organização das Nações Unidas para a Alimentação e a Agricultura (FAO).
+
+No mesmo período, a insegurança alimentar leve apresentou redução de 21,4% para 19,8%, enquanto a insegurança alimentar moderada caiu de 7,5% para 6,2%. Com isso, a proporção de domicílios cearenses com algum grau de insegurança alimentar recuou de 35,1% para 30,5% entre 2023 e 2024. Observa-se que a queda foi mais acentuada na insegurança alimentar grave, com redução de 1,8 ponto percentual, ao passo que a insegurança alimentar leve e a moderada recuaram 1,6 e 1,3 ponto percentual, respectivamente.
+
+## Situação de segurança alimentar no Ceará e recortes geográficos
+
+Em números absolutos, dos 9,233 milhões de pessoas que compõem a população do Ceará, conforme estimativa da PNAD Contínua para o quarto trimestre de 2024, mais de 3 milhões — o equivalente a 33% da população total — viviam em domicílios com algum grau de insegurança alimentar. Desse contingente, cerca de 391 mil pessoas tiveram que reduzir a quantidade de alimentos consumidos, chegando, inclusive, a vivenciar a fome (insegurança alimentar grave). Apesar dessa realidade ainda preocupante, em comparação com 2023, aproximadamente 149 mil cearenses deixaram de passar fome, o que representa uma redução de 27,6% no número de pessoas em situação de insegurança alimentar grave no último ano.
 
 ```{r}
 #| label: tbl-domicilios
-#| tbl-cap: Domicílios particulares e moradores em domicílios particulares por situação do domicílio, segundo a situação de segurança alimentar existente no domicílio
+#| tbl-cap: "Domicílios particulares e moradores em domicílios particulares, por situação do domicílio, segundo a situação de segurança alimentar existente no domicílio"
 
 bind_rows(
   dados |> 
@@ -221,27 +369,33 @@ bind_rows(
   )
 ```
 
-## Situação de segurança alimentar no Ceará e recortes geográficos
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
 
-A @fig-situacao mostra a prevalência de segurança alimentar por situação do domicílio. Há melhora nos indicadores de segurança alimentar tanto nos domicílios da área urbana quanto rural. Na zona rural a proporção de domicílios em Insegurança alimentar grave caiu de 6,3% para 3,8% em 2024, entretanto, a insan leve está presente em 26,4% dos domicílios. 61,9% dos domicílios apresentam segurança alimentar.
+No que se refere à situação do domicílio, estima-se que, em cerca de 751 mil domicílios urbanos, os moradores enfrentaram algum grau de insegurança alimentar. Desses, aproximadamente 476 mil apresentaram preocupação com a possibilidade de não dispor de recursos financeiros para a compra de alimentos no futuro próximo; em outros 153 mil domicílios, os moradores tiveram que consumir uma quantidade menor de alimentos do que a desejada; e, em cerca de 122 mil domicílios, os moradores — inclusive as crianças — conviveram com a fome.
 
-Nos domicílios da zona urbana, 71,5% apresentam segurança alimentar. Dentre os que apresentaram algum tipo de insegurança, 4,3% foi do tipo grave.
+Na zona rural, a insegurança alimentar grave esteve presente em aproximadamente 27 mil domicílios; em 55 mil, os moradores precisaram reduzir a quantidade de alimentos consumidos; e, em 186 mil domicílios, houve preocupação com a falta de alimentos no futuro próximo.
+
+A @fig-situacao apresenta a prevalência de segurança alimentar segundo a situação do domicílio. Observa-se melhora nos indicadores tanto nos domicílios urbanos quanto nos rurais. Na zona rural, a proporção de domicílios em segurança alimentar aumentou de 60,6% para 61,9%, enquanto, na zona urbana, o percentual passou de 66,0% para 71,5%.
+
+Embora o número absoluto de domicílios urbanos com algum grau de insegurança alimentar seja significativamente maior do que o observado na zona rural, isso se explica pelo fato de que 78,9% dos domicílios do estado localizam-se em áreas urbanas, ao passo que apenas 21,1% estão em áreas rurais. Em termos relativos, contudo, a prevalência da insegurança alimentar é maior entre os domicílios rurais.
 
 ```{r}
 #| label: fig-situacao
 #| fig-cap: "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo a situação do domicílio. Ceará - 2024"
 dados_svy_ce(dados, situacao) |> 
-  ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
+  ggplot(aes(ano, proporcao, fill = san)) +
   geom_col(position = "stack", width = 0.7) +
-  coord_flip()+
-  facet_grid(situacao ~ ., 
+  facet_grid(cols = vars(situacao), 
              labeller = labeller(situacao = c(Urbana = "Área Urbana", 
                                             Rural = "Área Rural")))+
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     position = position_stack(vjust = 0.5),
-    size = 2,
-    color="white")+
+    size = 3,
+    color="white",
+    fontface = "bold")+
   labs(
     #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo a situação do domicílio",
     #subtitle = "Ceará – 2023 e 2024",
@@ -249,13 +403,16 @@ dados_svy_ce(dados, situacao) |>
     x = NULL,
     #caption = "Fonte: PNAD Contínua/IBGE"
   )+
-  paleta_san_invertida +
-  guides(fill = guide_legend(reverse = TRUE)) +
+  paleta_san+
   eixo_y_percentual +
   tema_san
 ```
 
-A @fig-estratos apresenta o percentual de domicílios particulares permanentes por situação de segurança alimentar de acordo com o estrato geográfico do estado do Ceará. Os estratos que apresentaram maior segurança alimentar foram o município de Fortaleza (76,3%) seguido do seu entorno metropolitano (72,5%) e o Litoral Ocidental e Norte (70,8%). O Litoral Oriental - Vale do Rio Jaguaribe apresenta a menor proporção de domicílios em segurança alimentar.
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
+
+A @fig-estratos apresenta o percentual de domicílios particulares permanentes por situação de segurança alimentar, de acordo com os estratos geográficos do Estado do Ceará. Os maiores níveis de segurança alimentar foram observados no município de Fortaleza (76,3%), seguido por seu entorno metropolitano (72,5%) e pelo Litoral Ocidental e Norte (70,8%), que também correspondem aos estratos mais populosos do estado. Em contrapartida, o Litoral Oriental – Vale do Rio Jaguaribe apresentou a menor proporção de domicílios em segurança alimentar (60,6%), seguido pela região dos Sertões (60,8%).
 
 ```{r}
 #| label: fig-estratos
@@ -267,12 +424,11 @@ dados |>
                               "Fortaleza(CE)" = "2310",
                               "Entorno metropolitano \nde Fortaleza (CE)" = "2320",
                               "Litoral Ocidental \ne Norte do Ceará"= "2353",
-                              "Litoral Oriental \nVale do R. Jaguaribe (CE)"="2354",
+                              "Litoral Oriental \nVale do R. Jaguaribe"="2354",
                               "Sertões do Ceará"="2352",
                               "Sul do Ceará"="2351")) |> 
-  ggplot(aes(fct_rev(estrato), proporcao, fill = fct_rev(san))) +
+  ggplot(aes(estrato, proporcao, fill = san)) +
   geom_col(position = "stack", width = 0.7) +
-  coord_flip()+
   labs(
     #title = "Percentual de domicílios particulares permanentes por situação de segurança alimentar, segundo os recortes geográficos",
     #subtitle = "Ceará – 2024",
@@ -283,16 +439,20 @@ dados |>
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     position = position_stack(vjust = 0.5),
-    size = 2,
-    color="white"
+    size = 3,
+    color="white",
+    fontface = "bold"
   ) +
-  paleta_san_invertida +
-  guides(fill = guide_legend(reverse = TRUE)) +
+  paleta_san+
   eixo_y_percentual +
   tema_san
 ```
 
-Curiosamente, o Entorno Metropolitano de Fortaleza, apesar da grande proporção de domicílios em segurança alimentar, também apresenta a maior proporção de domicílios em insan grave, com 5,2%. Analisando o distribuição por estrato geográfico de acordo com a situação de insegurança alimentar (@fig-distribuicaoestratos) , podemos ver que esse estrato corresponde a 15% do total de domicílios, mas também a 17,4% daqueles em insam grave. Esse fenômeno também ocorre com Fortaleza, que representa 29,1% do total de domicílios mas também a 30,9% do total de insam grave.
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
+
+Chama atenção a relação entre os maiores estratos geográficos do Ceará e a ocorrência de insegurança alimentar grave. O Entorno Metropolitano de Fortaleza, apesar de apresentar elevada proporção de domicílios em segurança alimentar, também registrou a maior prevalência de insegurança alimentar grave (5,2%). Ao analisar a distribuição dos domicílios por estrato geográfico segundo a situação de insegurança alimentar (@fig-distribuicaoestratos), observa-se que esse estrato concentra 15,0% do total de domicílios do estado, mas responde por 17,4% daqueles em situação de insegurança alimentar grave. Fenômeno semelhante ocorre em Fortaleza, que representa 29,1% do total de domicílios, mas concentra 30,9% dos domicílios em situação de insegurança alimentar grave.
 
 ```{r}
 #| label: fig-distribuicaoestratos
@@ -327,13 +487,18 @@ bind_rows(
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     position = position_stack(vjust = 0.5),
-    size = 2,
-    color="white"
+    size = 3,
+    color="white",
+    fontface = "bold"
   ) +
   guides(fill = guide_legend(reverse = TRUE)) +
   eixo_y_percentual +
   tema_san
 ```
+
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
 
 ## Situação de segurança alimentar: comparação Brasil, Nordeste e Ceará
 
@@ -384,15 +549,18 @@ brasil <- dados |>
 indicadores <- bind_rows(indicadores, brasil)
 ```
 
+Os dados apresentados na \@fig-comparacao permitem comparar a situação da segurança alimentar no Brasil, no Nordeste e no Ceará em 2024. O percentual de domicílios cearenses em situação de segurança alimentar (69,5%) foi superior à média da região Nordeste (64,3%), mas inferior à média nacional (75,8%).
+
+Consequentemente, a prevalência de domicílios com algum grau de insegurança alimentar no estado é maior do que a média do país. Por outro lado, na comparação regional, observa-se que os percentuais de domicílios em insegurança alimentar leve e moderada são inferiores no Ceará em relação à média do Nordeste.
+
 ```{r}
 #| label: fig-comparacao
 #| fig-cap: "Distribuição dos domicílios particulares permanentes por situação de segurança alimentar existente no domicílio. Brasil, Nordeste e Ceará - 2024"
 #| 
 indicadores |> 
   mutate(grupo = fct_relevel(grupo, "Ceará", "Nordeste", "Brasil")) |> 
-  ggplot(aes(fct_rev(grupo), proporcao, fill = fct_rev(san))) +
+  ggplot(aes(grupo, proporcao, fill = san)) +
   geom_col(position = "stack", width = 0.7) +
-  coord_flip()+
   labs(
     #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o sexo da pessoa responsável pelo domicílio",
     #subtitle = "Brasil, Nordeste e Ceará – 2024",
@@ -403,27 +571,71 @@ indicadores |>
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     position = position_stack(vjust = 0.5),
-    size = 2,
-    color="white"
+    size = 3,
+    color="white",
+    fontface = "bold"
   ) +
-  paleta_san_invertida +
-  guides(fill = guide_legend(reverse = TRUE)) +
+  paleta_san +
   eixo_y_percentual +
   tema_san
+```
 
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
+
+Para qualificar adequadamente os resultados dessa comparação, é necessário considerar as desigualdades regionais no acesso aos alimentos no Brasil. Em 2024, a região Nordeste apresentou a penúltima proporção de domicílios particulares em situação de segurança alimentar, posicionando-se à frente apenas da região Norte (62,4%). Essas duas regiões também concentraram os maiores percentuais de domicílios em situação de insegurança alimentar grave.
+
+No comparativo entre os estados nordestinos, o Ceará ocupou a segunda posição em termos de segurança alimentar, ficando atrás apenas do Rio Grande do Norte (70,6%). Por outro lado, o estado situou-se em posição intermediária no ranking da proporção de domicílios em insegurança alimentar grave, à frente de Pernambuco (4,9%) e de Alagoas (5,0%), porém atrás de Sergipe e Piauí, ambos com 4,0%.
+
+```{r ranking}
+#| eval: false
+#| include: false
+dados |>
+    filter(posicao == "Pessoa responsável" & ano %in% c("PNADC 2024")) |>
+  mutate(
+    regiao = case_when(
+      uf %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima","Tocantins") ~ "Norte",
+      uf %in% c("Maranhão","Piauí","Ceará","Rio Grande do Norte","Paraíba",
+                "Pernambuco","Alagoas","Sergipe","Bahia") ~ "Nordeste",
+      uf %in% c("Minas Gerais","Espírito Santo","Rio de Janeiro","São Paulo") ~ "Sudeste",
+      uf %in% c("Paraná","Santa Catarina","Rio Grande do Sul") ~ "Sul",
+      uf %in% c("Mato Grosso","Mato Grosso do Sul","Goiás","Distrito Federal") ~ "Centro-Oeste"
+    )
+  ) |> 
+    as_survey_design(weights = peso) |>
+    group_by(ano, regiao, san) |>
+    summarise(
+      n = survey_total(),
+      .groups = "drop"
+    ) |>
+    group_by(regiao) |>
+    mutate(
+      populacao = sum(n),
+      proporcao = n / populacao
+    ) |>
+    ungroup()|>
+  filter(san == "Segurança alimentar") |> 
+  arrange(desc(proporcao)) |> 
+  select(regiao, proporcao)
+
+dados |> filter(posicao == "Pessoa responsável" & ano %in% c("PNADC 2024")) |> as_survey_design(weights = peso) |> group_by(ano, uf, san) |> summarise( n = survey_total(), .groups = "drop" ) |> group_by(uf) |> mutate( populacao = sum(n), proporcao = n / populacao ) |> ungroup() |> filter(san=="Insegurança alimentar grave"&uf %in%c("Maranhão", "Piauí", "Ceará", "Rio Grande do Norte", "Paraíba", "Pernambuco", "Alagoas", "Sergipe", "Bahia")) |> arrange(desc(proporcao)) |> select(uf, proporcao)
 ```
 
 ## Características dos domicílios e de seus moradores
 
+Nesta seção, comparam-se algumas características dos responsáveis pelos domicílios do Ceará nas duas últimas edições da PNAD Contínua (2023 e 2024), com o objetivo de compreender como a situação de segurança alimentar se relaciona a diferentes contextos sociais.
+
+Inicialmente, a @fig-sexo apresenta a situação de segurança alimentar segundo o sexo do responsável pelo domicílio. A prevalência da segurança alimentar é menor nos domicílios chefiados por mulheres (66,1%) em comparação àqueles chefiados por homens (74,0%). Entretanto, entre 2023 e 2024, o avanço da segurança alimentar foi mais intenso nos domicílios chefiados por mulheres, com aumento de 5,7 pontos percentuais (p.p.), contra 3,5 p.p. nos domicílios chefiados por homens. A redução da insegurança alimentar grave, por sua vez, foi maior entre os domicílios chefiados por homens (2,4 p.p.), em comparação aos chefiados por mulheres (1,4 p.p.).
+
 ```{r}
 #| label: fig-sexo
-#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,\nsegundo o sexo da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
+#| fig-cap: "Domicílios particulares, por situação de segurança alimentar, segundo o sexo da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
 
 dados_svy_ce(dados, sexo) |> 
-  ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
+  ggplot(aes(ano, proporcao, fill = san)) +
   geom_col(position = "stack", width = 0.7) +
-  coord_flip()+
-  facet_grid(sexo ~ .)+
+  facet_grid(cols = vars(sexo))+
   labs(
     #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o sexo da pessoa responsável pelo domicílio",
     #subtitle = "Ceará – 2023 e 2024",
@@ -434,18 +646,26 @@ dados_svy_ce(dados, sexo) |>
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     position = position_stack(vjust = 0.5),
-    size = 2,
-    color="white"
+    size = 3,
+    color="white",
+    fontface = "bold"
   ) +
-  paleta_san_invertida +
-  guides(fill = guide_legend(reverse = TRUE)) +
+  paleta_san+
   eixo_y_percentual +
   tema_san
 ```
 
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
+
+No que se refere à cor ou raça do responsável pelo domicílio, 67,7% dos domicílios chefiados por pretos ou pardos encontravam-se em situação de segurança alimentar, proporção inferior à observada entre aqueles chefiados por pessoas brancas (75,9%). Ainda assim, o aumento da segurança alimentar entre pretos e pardos entre 2023 e 2024 foi mais expressivo (5,2 p.p.) do que entre os brancos (3,6 p.p.).
+
+A insegurança alimentar grave permanece mais elevada entre domicílios chefiados por pretos ou pardos, atingindo 4,8%, embora tenha apresentado redução de 1,7 p.p. em relação ao ano anterior. Entre os domicílios chefiados por pessoas brancas, esse percentual foi de 3,1%, com queda mais acentuada, de 2,3 p.p.
+
 ```{r}
 #| label: fig-raca
-#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,\nsegundo a raça da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
+#| fig-cap: "Domicílios particulares, por situação de segurança alimentar, segundo a raça da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
 dados |>
   mutate(
     raca = case_when(
@@ -457,10 +677,9 @@ dados |>
   ) |> 
   dados_svy_ce(raca) |> 
   filter(raca %in% c("Branca", "Preta ou Parda")) |> 
-  ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
+  ggplot(aes(ano, proporcao, fill = san)) +
   geom_col(position = "stack", width = 0.7)+
-  coord_flip()+
-  facet_grid(raca ~ .) +
+  facet_grid(cols = vars(raca)) +
   labs(
     #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo a raça da pessoa responsável pelo domicílio",
     #subtitle = "Ceará – 2023 e 2024",
@@ -471,32 +690,39 @@ dados |>
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     position = position_stack(vjust = 0.5),
-    size = 2,
-    colour="white"
+    size = 3,
+    colour="white",
+    fontface = "bold"
   ) +
-  paleta_san_invertida +
-  guides(fill = guide_legend(reverse = TRUE)) +
+  paleta_san+
   eixo_y_percentual +
   tema_san
 
 ```
 
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
+
+Em relação à escolaridade do responsável pelo domicílio, observa-se que 63,5% dos domicílios chefiados por pessoas com escolaridade inferior ao ensino fundamental completo estavam em situação de segurança alimentar, frente a 73,8% daqueles chefiados por pessoas com, pelo menos, o ensino fundamental completo. Entre 2023 e 2024, o aumento da segurança alimentar foi de 4,9 p.p. no primeiro grupo e de 4,4 p.p. no segundo.
+
+A insegurança alimentar grave também se mostrou mais frequente entre domicílios chefiados por pessoas com menor escolaridade, atingindo 6,5% desses domicílios, embora com redução expressiva de 3,0 p.p. em comparação a 2023. Entre domicílios chefiados por pessoas com maior nível de escolaridade, a insegurança alimentar grave foi observada em 3,0%, registrando diminuição de 0,9 p.p. no mesmo período.
+
 ```{r}
 #| label: fig-escolaridade
-#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,\nsegundo a faixa de escolaridade da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
+#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,segundo a faixa de escolaridade da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
 
 dados |>
   mutate(
     faixa_escolaridade = case_when(
       faixa_escolaridade == "Sem instrução e menos de 1 ano de estudo" ~ "Sem instrução ou \nFund. incompleto",
       faixa_escolaridade == "Fundamental incompleto ou equivalente" ~ "Sem instrução ou \nFund. incompleto",
-      TRUE ~ "Fundamental \ncompleto \nou mais"
+      TRUE ~ "Fundamental \ncompleto ou mais"
     )) |> 
   dados_svy_ce(faixa_escolaridade) |> 
-  ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
+  ggplot(aes(ano, proporcao, fill = san)) +
   geom_col(position = "stack", width = 0.7)+
-  coord_flip()+
-  facet_grid(faixa_escolaridade ~ .) +
+  facet_grid(cols=vars(faixa_escolaridade)) +
   labs(
     #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo o nível de escolaridade da pessoa responsável pelo domicílio",
     #subtitle = "Ceará – 2023 e 2024",
@@ -507,19 +733,27 @@ dados |>
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     position = position_stack(vjust=0.5),
-    size = 2,
-    colour="white"
+    size = 3,
+    colour="white",
+    fontface = "bold"
   ) +
-  paleta_san_invertida +
-  guides(fill = guide_legend(reverse = TRUE)) +
+  paleta_san +
   eixo_y_percentual +
   tema_san
 
 ```
 
+::: {custom-style="Anotação"}
+*Fonte: PNAD Contínua IBGE*
+:::
+
+Quanto à renda, ao comparar domicílios com renda familiar per capita inferior a ½ salário mínimo com aqueles com renda per capita igual ou superior a esse patamar, verifica-se que os domicílios de menor renda apresentaram 55,1% de segurança alimentar, enquanto entre os de maior renda esse percentual alcançou 78,2%. A melhora observada nos domicílios de menor renda entre 2023 e 2024 foi de 5,1 p.p., superior ao aumento de 3,5 p.p. registrado entre os domicílios de maior renda.
+
+Por fim, a insegurança alimentar grave esteve presente em 7,6% dos domicílios com renda per capita de até ½ salário mínimo, apresentando redução de 2,7 p.p. em relação ao ano anterior. Entre os domicílios com renda per capita superior a ½ salário mínimo, a prevalência foi de 2,5%, com queda de 1,1 p.p.
+
 ```{r}
 #| label: fig-renda
-#| fig-cap: "Domicílios particulares, por situação de segurança alimentar,\nsegundo a faixa de renda da pessoa responsável pelo domicílio. Ceará – 2023 e 2024"
+#| fig-cap: "Domicílios particulares, por situação de segurança alimentar, segundo a renda domiciliar per capita. Ceará – 2023 e 2024"
 dados |>
   mutate(
     faixa_renda = case_when(
@@ -528,10 +762,9 @@ dados |>
       TRUE ~ "Mais de ½ \nsalário mínimo"
     )) |> 
   dados_svy_ce(faixa_renda) |> 
-  ggplot(aes(fct_rev(ano), proporcao, fill = fct_rev(san))) +
+  ggplot(aes(ano, proporcao, fill = san)) +
   geom_col(position = "stack", width = 0.7)+
-  coord_flip()+
-  facet_grid(faixa_renda ~ .) +
+  facet_grid(cols = vars(faixa_renda)) +
   labs(
     #title = "Domicílios particulares, por situação de segurança alimentar,\nsegundo as classes de rendimento domiciliar per capita",
     #subtitle = "Ceará – 2023 e 2024",
@@ -542,11 +775,11 @@ dados |>
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = 0.1)), 
     position = position_stack(vjust=0.5),
-    size = 2, face = "bold",
-    color="white"
+    size = 3,
+    color="white",
+    fontface = "bold"
   ) +
-  paleta_san_invertida +
-  guides(fill = guide_legend(reverse = TRUE)) +
+  paleta_san +
   eixo_y_percentual +
   tema_san
 ```
