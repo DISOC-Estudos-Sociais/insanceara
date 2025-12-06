@@ -6,21 +6,25 @@ manuscript:
 
 format:
   html:
+    notebook: false
+    notebook-source: false
     comments:
       hypothesis: true
+
   docx:
+    notebook: false
+    notebook-source: false
     fig-cap-location: top
     fig-align: center
     fig-format: png
     tbl-cap-location: top
     reference-doc: custom-reference.docx
-  jats: default
 
-  # (other formats)
-  # pdf: default
+  jats: default
 
 execute:
   freeze: true
+
 
 
 
