@@ -1,17 +1,28 @@
 ---
-title: A segurança alimentar no Ceará em 2024
+title: "A segurança alimentar no Ceará em 2024"
 lang: pt-br
-authors:
+author:
   - name: João Victor Batista Lopes
     affiliation: IPECE - Instituto de Pesquisa e Estratégia Econômica do Ceará
-    roles: writing
-    corresponding: true
+
+format:
+  html:
+    toc: true
+    self-contained: true
+  docx:
+    fig-cap-location: top
+    tbl-cap-location: top
+    fig-align: center
+    fig-format: png
+    reference-doc: custom-reference.docx
+
 execute:
   echo: false
   message: false
   warning: false
   fig-width: 6
   fig-height: 4
+
 bibliography: references.bib
 ---
 
