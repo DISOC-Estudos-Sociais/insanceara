@@ -2,6 +2,8 @@
 title: "A segurança alimentar no Ceará em 2024"
 lang: pt-br
 author:
+  - name: Jimmy Lima de Oliveira
+    affiliation: IPECE - Instituto de Pesquisa e Estratégia Econômica do Ceará
   - name: João Victor Batista Lopes
     affiliation: IPECE - Instituto de Pesquisa e Estratégia Econômica do Ceará
 
